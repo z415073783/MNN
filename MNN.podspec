@@ -36,6 +36,7 @@ Pod::Spec.new do |s|
   s.frameworks = 'Metal', 'Accelerate'
   s.library = 'c++'
   s.prepare_command = 'schema/generate.sh'
+  s.vendored_frameworks = '../../lib/ios/MNN.framework'
 
   s.subspec 'core' do |a|
     a.source_files = \

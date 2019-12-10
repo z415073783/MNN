@@ -63,11 +63,11 @@ using namespace MNN;
         _device        = self.class.device;
         _commandQueue  = [_device newCommandQueue];
         _commandBuffer = [_commandQueue commandBuffer];
-        if (@available(iOS 11.0, *)) {
+//        if (@available(iOS 11.0, *)) {
             _maxThreadgroupMemoryLength = _device.maxThreadgroupMemoryLength;
-        } else {
-            _maxThreadgroupMemoryLength = 16352; // 16352(16k - 32b) on iOS 11- according to feature set doc
-        }
+//        } else {
+//            _maxThreadgroupMemoryLength = 16352; // 16352(16k - 32b) on iOS 11- according to feature set doc
+//        }
 
         // private
         _caches   = [NSMutableDictionary dictionary];
@@ -77,7 +77,7 @@ using namespace MNN;
             return nil;
         }
 
-        if (@available(iOS 10.0, *)) {
+//        if (@available(iOS 10.0, *)) {
             MTLHeapDescriptor *shared = [[MTLHeapDescriptor alloc] init];
             shared.storageMode        = MTLStorageModeShared;
             shared.size               = 0x1000; // initial size
@@ -87,7 +87,7 @@ using namespace MNN;
             priv.storageMode        = MTLStorageModePrivate;
             priv.size               = 0x0800; // initial size
             _privateHeap            = [_device newHeapWithDescriptor:priv];
-        }
+//        }
     }
     return self;
 }
@@ -97,11 +97,11 @@ using namespace MNN;
     if (access == CPUWriteOnly) {
         return MTLResourceOptionCPUCacheModeWriteCombined;
     } else if (access == CPUTransparent) {
-        if (@available(iOS 9.0, *)) {
+//        if (@available(iOS 9.0, *)) {
             return MTLResourceStorageModePrivate;
-        } else {
-            return MTLResourceOptionCPUCacheModeDefault;
-        }
+//        } else {
+//            return MTLResourceOptionCPUCacheModeDefault;
+//        }
     } else { // access == CPUReadWrite
         return MTLResourceOptionCPUCacheModeDefault;
     }
@@ -118,21 +118,21 @@ using namespace MNN;
 #pragma mark heap
 - (id<MTLBuffer>)newHeapBuffer:(NSUInteger)size access:(MNN::MetalAccess)access {
     MTLResourceOptions options = [self optionForAccess:access];
-    if (@available(iOS 10.0, *)) {
+//    if (@available(iOS 10.0, *)) {
         id<MTLHeap> heap = access == CPUTransparent ? _privateHeap : _sharedHeap;
         if (size <= [heap maxAvailableSizeWithAlignment:1]) {
             id<MTLBuffer> buffer = [heap newBufferWithLength:size options:options];
             if (buffer)
                 return buffer;
         }
-    }
+//    }
     return [_device newBufferWithLength:size options:options];
 }
 
 - (id<MTLBuffer>)newHeapBuffer:(NSUInteger)size bytes:(const void *)bytes access:(MNN::MetalAccess)access {
     MNN_ASSERT(access != CPUReadWrite);
     MTLResourceOptions options = [self optionForAccess:access];
-    if (@available(iOS 10.0, *)) {
+//    if (@available(iOS 10.0, *)) {
         id<MTLHeap> heap = access == CPUTransparent ? _privateHeap : _sharedHeap;
         if (size <= [heap maxAvailableSizeWithAlignment:1]) {
             id<MTLBuffer> buffer = [heap newBufferWithLength:size options:options];
@@ -141,15 +141,15 @@ using namespace MNN;
                 return buffer;
             }
         }
-    }
+//    }
     return [_device newBufferWithBytes:bytes length:size options:options];
 }
 
 - (void)releaseHeapBuffer:(id<MTLBuffer>)buffer {
-    if (@available(iOS 10.0, *)) {
+//    if (@available(iOS 10.0, *)) {
         if (buffer.heap)
             [buffer makeAliasable];
-    }
+//    }
 }
 
 #pragma mark enqueue
@@ -158,7 +158,7 @@ using namespace MNN;
         return nil;
     id<MTLFunction> result = [_library newFunctionWithName:name];
 #if MNN_METAL_DEBUG || MNN_METAL_BENCHMARK
-    if (@available(iOS 10.0, *))
+//    if (@available(iOS 10.0, *))
         result.label = name;
 #endif
     return result;
@@ -235,9 +235,9 @@ using namespace MNN;
             printf("[METAL] commit costs: %.3fms\t(kernel: %.3fms, GPU: %.3fms)\n", (end - begin) * 1000.f,
                    (buffer.kernelEndTime - buffer.kernelStartTime) * 1000.f,
                    (buffer.GPUEndTime - buffer.GPUStartTime) * 1000.f);
-        } else {
-            printf("[METAL] commit costs: %.3fms\n", (end - begin) * 1000.f);
-        }
+//        } else {
+//            printf("[METAL] commit costs: %.3fms\n", (end - begin) * 1000.f);
+//        }
 #else
         [buffer waitUntilCompleted];
 #endif
@@ -328,12 +328,12 @@ static NSUInteger smallest_log2(NSUInteger integer) {
     threadsPerGroup.height = MIN(threadsPerGroup.height, bandwidth.maxThreadsPerThreadgroup);
     threadsPerGroup.depth  = MIN(threadsPerGroup.depth, bandwidth.maxThreadsPerThreadgroup);
 #ifdef MNN_BUILD_FOR_IOS
-    if (@available(iOS 11.0, *)) {
+//    if (@available(iOS 11.0, *)) {
         if ([_device supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily4_v1]) {
             [encoder dispatchThreads:threads threadsPerThreadgroup:threadsPerGroup];
             return;
         }
-    }
+//    }
 #endif
     MTLSize groups = {
         UP_DIV(threads.width, threadsPerGroup.width), UP_DIV(threads.height, threadsPerGroup.height),
